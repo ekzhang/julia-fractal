@@ -20,7 +20,6 @@ const int NUM_THREADS = 4;
 const int MAX_ITER = 500;
 
 std::tuple<int, int, int> palette(double x) {
-    x = std::pow(x, 16);
     int r = x * 256;
     int g = x * 256;
     int b = x * 256;
@@ -61,6 +60,21 @@ void equalize(std::vector<double>& img) {
     for (int i = 0; i < ordering.size(); i++) {
         img[ordering[i]] = 1.0 * i / ordering.size();
     }
+    for (double& d : img) {
+        d = std::pow(d, 16);
+    }
+}
+
+void scale(std::vector<double>& img) {
+    double avg = 0;
+    for (double d : img) {
+        avg += d;
+    }
+    avg /= img.size();
+    for (double& d : img) {
+        d /= avg * 10;
+        d = std::min(d, 0.9999);
+    }
 }
 
 int main(int argc, char** argv) {
@@ -95,7 +109,7 @@ int main(int argc, char** argv) {
     }
 
     // Normalization procedure
-    equalize(raw_colors);
+    scale(raw_colors);
 
     // Apply the color palette
     std::vector<unsigned char> pix;
