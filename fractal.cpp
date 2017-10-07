@@ -8,6 +8,23 @@
 
 typedef std::complex<double> complex;
 
+// Width and height of the output image
+const int WIDTH = 1920 * 2;
+const int HEIGHT = 1080 * 2;
+
+// Number of threads to use when multithreading
+const int NUM_THREADS = 4;
+
+// Maximum number of iterations when computing the Julia fractal
+const int MAX_ITER = 500;
+
+std::tuple<int, int, int> palette(double x) {
+    int r = x * 128;
+    int g = x * 256;
+    int b = x * 256;
+    return std::make_tuple(r, g, b);
+}
+
 std::vector<unsigned char> julia_pixels(complex c, int width, int height,
                                         int row_b, int row_e) {
     std::vector<unsigned char> pix;
@@ -16,15 +33,19 @@ std::vector<unsigned char> julia_pixels(complex c, int width, int height,
             double x = -1.4 + 2.8 * j / width;
             double y = 1.4 - 2.8 * i / height;
             complex z(x, y);
-            int iter;
-            for (iter = 0; iter < 255; iter++) {
-                z = z * z + c;
-                if (std::norm(z) > 2.0)
+            double smooth_color = 0;
+            for (int iter = 0; iter < MAX_ITER; iter++) {
+                double norm = std::norm(z);
+                smooth_color += std::exp(-norm);
+                if (norm > 2.0)
                     break;
+                z = z * z + c;
             }
-            pix.push_back(iter);
-            pix.push_back(iter);
-            pix.push_back(iter);
+            smooth_color /= MAX_ITER;
+            auto color = palette(smooth_color);
+            pix.push_back(std::get<0>(color));
+            pix.push_back(std::get<1>(color));
+            pix.push_back(std::get<2>(color));
         }
     }
     return pix;
@@ -42,32 +63,26 @@ int main(int argc, char** argv) {
     std::cout << "Computing the Julia set for f(x) = x^2 - c; c = ";
     std::cin >> c;
     
-    // Width and height of the output image
-    const int width = 1920 * 2;
-    const int height = 1080 * 2;
-
-    // Number of threads to use when multithreading
-    const int num_threads = 4;
-    std::future<std::vector<unsigned char>> threads[num_threads];
+    std::future<std::vector<unsigned char>> threads[NUM_THREADS];
 
     steady_clock::time_point start_time = steady_clock::now();
 
-    for (int tid = 0; tid < num_threads; tid++) {
-        int row_b = tid * height / num_threads;
-        int row_e = (tid + 1) * height / num_threads;
+    for (int tid = 0; tid < NUM_THREADS; tid++) {
+        int row_b = tid * HEIGHT / NUM_THREADS;
+        int row_e = (tid + 1) * HEIGHT / NUM_THREADS;
         threads[tid] = std::async(std::launch::async, julia_pixels,
-                                  c, width, height, row_b, row_e);
+                                  c, WIDTH, HEIGHT, row_b, row_e);
     }
 
     std::vector<unsigned char> pix;
-    for (int tid = 0; tid < num_threads; tid++) {
+    for (int tid = 0; tid < NUM_THREADS; tid++) {
         threads[tid].wait();
         std::vector<unsigned char> partial = threads[tid].get();
         pix.insert(pix.end(), partial.begin(), partial.end());
     }
     
     Image image;
-    image.read(width, height, "RGB", CharPixel, &pix[0]);
+    image.read(WIDTH, HEIGHT, "RGB", CharPixel, &pix[0]);
     gaussianBlurImage blur(2, 0.4);
     blur(image);
 
