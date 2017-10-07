@@ -10,8 +10,8 @@
 typedef std::complex<double> complex;
 
 // Width and height of the output image
-const int WIDTH = 1920 * 2;
-const int HEIGHT = 1080 * 2;
+const int WIDTH = 3000;
+const int HEIGHT = 3000;
 
 // Number of threads to use when multithreading
 const int NUM_THREADS = 4;
@@ -31,8 +31,8 @@ std::vector<double> julia_pixels(complex c, int width, int height,
     std::vector<double> pix;
     for (int i = row_b; i < row_e; i++) {
         for (int j = 0; j < width; j++) {
-            double x = -1.4 + 2.8 * j / width;
-            double y = 1.4 - 2.8 * i / height;
+            double x = -1.5 + 3.0 * j / width;
+            double y = 1.5 - 3.0 * i / height;
             complex z(x, y);
             double smooth_color = 0;
             for (int iter = 0; iter < MAX_ITER; iter++) {
