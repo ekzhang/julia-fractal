@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
     // Julia Fractal function:
     // f(z) = z^2 - c
     complex c; // Ex: (-0.221, -0.713);
-    std::cout << "Computing the Julia set for f(x) = x^2 - c; c = ";
+    std::cout << "Computing the Julia set for f(x) = x^2 + c; c = ";
     std::cin >> c;
 
     steady_clock::time_point start_time = steady_clock::now();
