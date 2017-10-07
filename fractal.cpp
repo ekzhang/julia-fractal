@@ -14,7 +14,7 @@ std::vector<unsigned char> julia_pixels(complex c, int width, int height,
     for (int i = row_b; i < row_e; i++) {
         for (int j = 0; j < width; j++) {
             double x = -1.4 + 2.8 * j / width;
-            double y = 1.1 - 2.2 * i / height;
+            double y = 1.4 - 2.8 * i / height;
             complex z(x, y);
             int iter;
             for (iter = 0; iter < 255; iter++) {
@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
     // Julia Fractal function:
     // f(z) = z^2 - c
     complex c; //(-0.221, -0.713);
+    std::cout << "Computing the Julia set for f(x) = x^2 - c; c = ";
     std::cin >> c;
     
     // Width and height of the output image
