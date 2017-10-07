@@ -20,7 +20,8 @@ const int NUM_THREADS = 4;
 const int MAX_ITER = 500;
 
 std::tuple<int, int, int> palette(double x) {
-    int r = x * 128;
+    x = std::pow(x, 16);
+    int r = x * 256;
     int g = x * 256;
     int b = x * 256;
     return std::make_tuple(r, g, b);
@@ -38,7 +39,7 @@ std::vector<double> julia_pixels(complex c, int width, int height,
             for (int iter = 0; iter < MAX_ITER; iter++) {
                 double norm = std::norm(z);
                 smooth_color += std::exp(-norm);
-                if (norm > 2.0)
+                if (norm > 30.0)
                     break;
                 z = z * z + c;
             }
@@ -107,8 +108,8 @@ int main(int argc, char** argv) {
     
     Image image;
     image.read(WIDTH, HEIGHT, "RGB", CharPixel, &pix[0]);
-    // gaussianBlurImage blur(2, 0.4);
-    // blur(image);
+    gaussianBlurImage blur(2, 0.4);
+    blur(image);
 
     steady_clock::time_point end_time = steady_clock::now();
     long long time_millis = duration_cast<milliseconds>(end_time - start_time).count();
