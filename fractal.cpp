@@ -75,7 +75,8 @@ int main(int argc, char** argv) {
     long long time_millis = duration_cast<milliseconds>(end_time - start_time).count();
     std::cout << "Finished generating image, took " << time_millis << "ms." << std::endl;
     
-    std::string c_pretty = std::to_string(c.real()) + (c.imag() >= 0 ? "+" : "") + std::to_string(c.imag()) + "j";
+    std::string c_pretty = (c.real() >= 0 ? "+" : "") + std::to_string(c.real()) +
+                           (c.imag() >= 0 ? "+" : "") + std::to_string(c.imag()) + "j";
     std::string out_filename = "output/" + c_pretty + ".png";
     image.write(out_filename);
     system(("open " + out_filename).c_str());
