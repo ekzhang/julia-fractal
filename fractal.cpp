@@ -20,33 +20,6 @@ const int NUM_THREADS = 4;
 // Maximum number of iterations when computing the Julia fractal
 const int MAX_ITER = 500;
 
-color palette(double x) {
-    static const std::vector<double> CONTROL_X {
-        0.0, 0.16, 0.42, 0.6425, 0.8575, 1.0
-    };
-    static const std::vector<std::tuple<int, int, int>> CONTROL_C {
-        std::make_tuple(0, 7, 100),
-        std::make_tuple(32, 107, 203),
-        std::make_tuple(237, 255, 255),
-        std::make_tuple(255, 170, 0),
-        std::make_tuple(0, 2, 0),
-        std::make_tuple(0, 7, 100)
-    };
-    
-    x -= std::floor(x);
-    for (int i = 0; i < CONTROL_X.size() - 1; i++) {
-        if (CONTROL_X[i + 1] >= x) {
-            double k = (x - CONTROL_X[i]) / (CONTROL_X[i + 1] - CONTROL_X[i]);
-            std::tuple<int, int, int> c1 = CONTROL_C[i], c2 = CONTROL_C[i + 1];
-            unsigned char r = (1 - k) * std::get<0>(c1) + k * std::get<0>(c2);
-            unsigned char g = (1 - k) * std::get<1>(c1) + k * std::get<1>(c2);
-            unsigned char b = (1 - k) * std::get<2>(c1) + k * std::get<2>(c2);
-            return std::make_tuple(r, g, b);
-        }
-    }
-    throw std::domain_error("invalid palette parameter `x`");
-}
-
 std::vector<double> julia_pixels(complex c, int width, int height,
                                  int row_b, int row_e) {
     std::vector<double> pix;
@@ -95,6 +68,33 @@ void scale(std::vector<double>& img) {
     for (double& d : img) {
         d /= avg * 15;
     }
+}
+
+color palette(double x) {
+    static const std::vector<double> CONTROL_X {
+        0.0, 0.16, 0.42, 0.6425, 0.8575, 1.0
+    };
+    static const std::vector<std::tuple<int, int, int>> CONTROL_C {
+        std::make_tuple(0, 7, 100),
+        std::make_tuple(32, 107, 203),
+        std::make_tuple(237, 255, 255),
+        std::make_tuple(255, 170, 0),
+        std::make_tuple(0, 2, 0),
+        std::make_tuple(0, 7, 100)
+    };
+    
+    x -= std::floor(x);
+    for (int i = 0; i < CONTROL_X.size() - 1; i++) {
+        if (CONTROL_X[i + 1] >= x) {
+            double k = (x - CONTROL_X[i]) / (CONTROL_X[i + 1] - CONTROL_X[i]);
+            std::tuple<int, int, int> c1 = CONTROL_C[i], c2 = CONTROL_C[i + 1];
+            unsigned char r = (1 - k) * std::get<0>(c1) + k * std::get<0>(c2);
+            unsigned char g = (1 - k) * std::get<1>(c1) + k * std::get<1>(c2);
+            unsigned char b = (1 - k) * std::get<2>(c1) + k * std::get<2>(c2);
+            return std::make_tuple(r, g, b);
+        }
+    }
+    throw std::domain_error("invalid palette parameter `x`");
 }
 
 int main(int argc, char** argv) {
