@@ -8,6 +8,7 @@
 #include <Magick++.h>
 
 typedef std::complex<double> complex;
+typedef std::tuple<unsigned char, unsigned char, unsigned char> color;
 
 // Width and height of the output image
 const int WIDTH = 3000;
@@ -19,11 +20,31 @@ const int NUM_THREADS = 4;
 // Maximum number of iterations when computing the Julia fractal
 const int MAX_ITER = 500;
 
-std::tuple<int, int, int> palette(double x) {
-    int r = x * 256;
-    int g = x * 256;
-    int b = x * 256;
-    return std::make_tuple(r, g, b);
+color palette(double x) {
+    static const std::vector<double> CONTROL_X {
+        0.0, 0.16, 0.42, 0.6425, 0.8575, 1.0
+    };
+    static const std::vector<std::tuple<int, int, int>> CONTROL_C {
+        std::make_tuple(0, 7, 100),
+        std::make_tuple(32, 107, 203),
+        std::make_tuple(237, 255, 255),
+        std::make_tuple(255, 170, 0),
+        std::make_tuple(0, 2, 0),
+        std::make_tuple(0, 7, 100)
+    };
+    
+    x -= std::floor(x);
+    for (int i = 0; i < CONTROL_X.size() - 1; i++) {
+        if (CONTROL_X[i + 1] >= x) {
+            double k = (x - CONTROL_X[i]) / (CONTROL_X[i + 1] - CONTROL_X[i]);
+            std::tuple<int, int, int> c1 = CONTROL_C[i], c2 = CONTROL_C[i + 1];
+            unsigned char r = (1 - k) * std::get<0>(c1) + k * std::get<0>(c2);
+            unsigned char g = (1 - k) * std::get<1>(c1) + k * std::get<1>(c2);
+            unsigned char b = (1 - k) * std::get<2>(c1) + k * std::get<2>(c2);
+            return std::make_tuple(r, g, b);
+        }
+    }
+    throw std::domain_error("invalid palette parameter `x`");
 }
 
 std::vector<double> julia_pixels(complex c, int width, int height,
@@ -72,8 +93,7 @@ void scale(std::vector<double>& img) {
     }
     avg /= img.size();
     for (double& d : img) {
-        d /= avg * 10;
-        d = std::min(d, 0.9999);
+        d /= avg * 15;
     }
 }
 
@@ -114,7 +134,7 @@ int main(int argc, char** argv) {
     // Apply the color palette
     std::vector<unsigned char> pix;
     for (double d : raw_colors) {
-        auto t = palette(d);
+        color t = palette(d);
         pix.push_back(std::get<0>(t));
         pix.push_back(std::get<1>(t));
         pix.push_back(std::get<2>(t));
