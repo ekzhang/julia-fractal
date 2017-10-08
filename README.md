@@ -1,6 +1,6 @@
 julia-fractal
 =============
 
-A simple Julia set image plotter in C++. Run using `make`.
+A simple Julia set image plotter in C++. Run using `make run`.
 
 Note: Requires ImageMagick to generate PNG-format images.
