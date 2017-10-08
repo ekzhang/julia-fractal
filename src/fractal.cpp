@@ -1,29 +1,4 @@
-#include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <complex>
-#include <cstdlib>
-#include <future>
-#include <iostream>
-#include <stdexcept>
-#include <string>
-#include <tuple>
-#include <vector>
-
-#include <Magick++.h>
-
-typedef std::complex<double> complex;
-typedef std::tuple<unsigned char, unsigned char, unsigned char> color;
-
-// Width and height of the output image
-const int DEFAULT_WIDTH = 3000;
-const int DEFAULT_HEIGHT = 3000;
-
-// Number of threads to use when multithreading
-const int DEFAULT_NUM_THREADS = 4;
-
-// Maximum number of iterations when computing the Julia fractal
-const int DEFAULT_MAX_ITER = 256;
+#include "fractal.h"
 
 std::vector<double> julia_pixels(complex c, int width, int height,
                                  int max_iter, int row_b, int row_e) {
@@ -103,10 +78,10 @@ color palette(double x) {
 }
 
 Magick::Image julia_set(const complex c,
-                        const int width=DEFAULT_WIDTH,
-                        const int height=DEFAULT_HEIGHT,
-                        const int num_threads=DEFAULT_NUM_THREADS,
-                        const int max_iter=DEFAULT_MAX_ITER) {
+                        const int width,
+                        const int height,
+                        const int num_threads,
+                        const int max_iter) {
     using namespace Magick;
 
     // Begin multithreaded Julia set calculations
@@ -144,30 +119,4 @@ Magick::Image julia_set(const complex c,
     blur(image);
 
     return image;
-}
-
-int main(int argc, char** argv) {
-    using namespace std::chrono;
-    using namespace Magick;
-
-    InitializeMagick(*argv);
-
-    // Julia Fractal function:
-    // f(z) = z^2 - c
-    complex c; // Ex: (-0.221, -0.713);
-    std::cout << "Computing the Julia set for f(x) = x^2 + c; c = ";
-    std::cin >> c;
-
-    steady_clock::time_point start_time = steady_clock::now();
-    Image image = julia_set(c);
-    steady_clock::time_point end_time = steady_clock::now();
-    long long time_millis = duration_cast<milliseconds>(end_time - start_time).count();
-    std::cout << "Finished generating image, took " << time_millis << "ms." << std::endl;
-    
-    std::string c_pretty = (c.real() >= 0 ? "+" : "") + std::to_string(c.real()) +
-                           (c.imag() >= 0 ? "+" : "") + std::to_string(c.imag()) + "j";
-    std::string out_filename = "output/" + c_pretty + ".png";
-    image.write(out_filename);
-    system(("open " + out_filename).c_str());
-    return 0;
 }
