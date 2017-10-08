@@ -1,9 +1,14 @@
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <complex>
-#include <iostream>
-#include <string>
+#include <cstdlib>
 #include <future>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include <Magick++.h>
 
@@ -97,7 +102,7 @@ color palette(double x) {
     throw std::domain_error("invalid palette parameter `x`");
 }
 
-Magick::Image julia_set(const complex& c,
+Magick::Image julia_set(const complex c,
                         const int width=DEFAULT_WIDTH,
                         const int height=DEFAULT_HEIGHT,
                         const int num_threads=DEFAULT_NUM_THREADS,
