@@ -80,8 +80,9 @@ color palette(double x) {
 Magick::Image julia_set(const complex c,
                         const int width,
                         const int height,
-                        const int num_threads,
-                        const int max_iter) {
+                        std::function<void(std::vector<double>&)> normalize,
+                        const int max_iter,
+                        const int num_threads) {
     using namespace Magick;
 
     // Begin multithreaded Julia set calculations
@@ -102,7 +103,7 @@ Magick::Image julia_set(const complex c,
     }
 
     // Normalization procedure
-    scale(raw_colors);
+    normalize(raw_colors);
 
     // Apply the color palette
     std::vector<unsigned char> pix;

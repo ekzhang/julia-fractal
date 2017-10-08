@@ -4,6 +4,7 @@
 #include <cmath>
 #include <complex>
 #include <cstdlib>
+#include <functional>
 #include <future>
 #include <iostream>
 #include <stdexcept>
@@ -38,5 +39,6 @@ color palette(double x);
 Magick::Image julia_set(const complex c,
                         const int width=DEFAULT_WIDTH,
                         const int height=DEFAULT_HEIGHT,
-                        const int num_threads=DEFAULT_NUM_THREADS,
-                        const int max_iter=DEFAULT_MAX_ITER);
+                        std::function<void(std::vector<double>&)> normalize=scale,
+                        const int max_iter=DEFAULT_MAX_ITER,
+                        const int num_threads=DEFAULT_NUM_THREADS);
