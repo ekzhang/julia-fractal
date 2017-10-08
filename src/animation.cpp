@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
 
     const double PI = std::atan2(0, -1);
     const int NUM_FRAMES = 360;
-    const int FPS = 15;
+    const int FPS = 20;
 
     steady_clock::time_point start_time = steady_clock::now();
 
@@ -17,11 +17,7 @@ int main(int argc, char** argv) {
         std::cout << "Currently on frame " << frame + 1 << "/" << NUM_FRAMES << "..." << std::endl;
         double arg = frame * 2 * PI / NUM_FRAMES;
         complex c = std::polar(0.8785, arg);
-        Image im = julia_set(c, 512, 512, [](std::vector<double>& img) {
-            for (double& d : img) {
-                d *= 2;
-            }
-        });
+        Image im = julia_set(c, 512, 512, scale);
         im.animationDelay(100.0 / FPS);
         frames.push_back(im);
     }
