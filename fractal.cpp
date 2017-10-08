@@ -6,6 +6,7 @@
 #include <future>
 
 #include <Magick++.h>
+using namespace Magick;
 
 typedef std::complex<double> complex;
 typedef std::tuple<unsigned char, unsigned char, unsigned char> color;
@@ -97,20 +98,7 @@ color palette(double x) {
     throw std::domain_error("invalid palette parameter `x`");
 }
 
-int main(int argc, char** argv) {
-    using namespace Magick;
-    using namespace std::chrono;
-
-    InitializeMagick(*argv);
-
-    // Julia Fractal function:
-    // f(z) = z^2 - c
-    complex c; // Ex: (-0.221, -0.713);
-    std::cout << "Computing the Julia set for f(x) = x^2 + c; c = ";
-    std::cin >> c;
-
-    steady_clock::time_point start_time = steady_clock::now();
-
+Image julia_set(const complex& c) {
     // Begin multithreaded Julia set calculations
     std::future<std::vector<double>> threads[NUM_THREADS];
     for (int tid = 0; tid < NUM_THREADS; tid++) {
@@ -145,6 +133,22 @@ int main(int argc, char** argv) {
     gaussianBlurImage blur(2, 0.4);
     blur(image);
 
+    return image;
+}
+
+int main(int argc, char** argv) {
+    using namespace std::chrono;
+
+    InitializeMagick(*argv);
+
+    // Julia Fractal function:
+    // f(z) = z^2 - c
+    complex c; // Ex: (-0.221, -0.713);
+    std::cout << "Computing the Julia set for f(x) = x^2 + c; c = ";
+    std::cin >> c;
+
+    steady_clock::time_point start_time = steady_clock::now();
+    Image image = julia_set(c);
     steady_clock::time_point end_time = steady_clock::now();
     long long time_millis = duration_cast<milliseconds>(end_time - start_time).count();
     std::cout << "Finished generating image, took " << time_millis << "ms." << std::endl;
