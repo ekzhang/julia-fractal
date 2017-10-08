@@ -6,23 +6,22 @@
 #include <future>
 
 #include <Magick++.h>
-using namespace Magick;
 
 typedef std::complex<double> complex;
 typedef std::tuple<unsigned char, unsigned char, unsigned char> color;
 
 // Width and height of the output image
-const int WIDTH = 3000;
-const int HEIGHT = 3000;
+const int DEFAULT_WIDTH = 3000;
+const int DEFAULT_HEIGHT = 3000;
 
 // Number of threads to use when multithreading
-const int NUM_THREADS = 4;
+const int DEFAULT_NUM_THREADS = 4;
 
 // Maximum number of iterations when computing the Julia fractal
-const int MAX_ITER = 256;
+const int DEFAULT_MAX_ITER = 256;
 
 std::vector<double> julia_pixels(complex c, int width, int height,
-                                 int row_b, int row_e) {
+                                 int max_iter, int row_b, int row_e) {
     std::vector<double> pix;
     for (int i = row_b; i < row_e; i++) {
         for (int j = 0; j < width; j++) {
@@ -30,14 +29,14 @@ std::vector<double> julia_pixels(complex c, int width, int height,
             double y = 1.5 - 3.0 * i / height;
             complex z(x, y);
             double smooth_color = 0;
-            for (int iter = 0; iter < MAX_ITER; iter++) {
+            for (int iter = 0; iter < max_iter; iter++) {
                 double norm = std::norm(z);
                 smooth_color += std::exp(-norm);
                 if (norm > 30.0)
                     break;
                 z = z * z + c;
             }
-            smooth_color /= MAX_ITER;
+            smooth_color /= max_iter;
             pix.push_back(smooth_color);
         }
     }
@@ -98,19 +97,25 @@ color palette(double x) {
     throw std::domain_error("invalid palette parameter `x`");
 }
 
-Image julia_set(const complex& c) {
+Magick::Image julia_set(const complex& c,
+                        const int width=DEFAULT_WIDTH,
+                        const int height=DEFAULT_HEIGHT,
+                        const int num_threads=DEFAULT_NUM_THREADS,
+                        const int max_iter=DEFAULT_MAX_ITER) {
+    using namespace Magick;
+
     // Begin multithreaded Julia set calculations
-    std::future<std::vector<double>> threads[NUM_THREADS];
-    for (int tid = 0; tid < NUM_THREADS; tid++) {
-        int row_b = tid * HEIGHT / NUM_THREADS;
-        int row_e = (tid + 1) * HEIGHT / NUM_THREADS;
+    std::future<std::vector<double>> threads[num_threads];
+    for (int tid = 0; tid < num_threads; tid++) {
+        int row_b = tid * height / num_threads;
+        int row_e = (tid + 1) * height / num_threads;
         threads[tid] = std::async(std::launch::async, julia_pixels,
-                                  c, WIDTH, HEIGHT, row_b, row_e);
+                                  c, width, height, max_iter, row_b, row_e);
     }
 
     // Wait on the threads to finish, and combine results to form the image
     std::vector<double> raw_colors;
-    for (int tid = 0; tid < NUM_THREADS; tid++) {
+    for (int tid = 0; tid < num_threads; tid++) {
         threads[tid].wait();
         std::vector<double> partial = threads[tid].get();
         raw_colors.insert(raw_colors.end(), partial.begin(), partial.end());
@@ -129,7 +134,7 @@ Image julia_set(const complex& c) {
     }
     
     Image image;
-    image.read(WIDTH, HEIGHT, "RGB", CharPixel, &pix[0]);
+    image.read(width, height, "RGB", CharPixel, &pix[0]);
     gaussianBlurImage blur(2, 0.4);
     blur(image);
 
@@ -138,6 +143,7 @@ Image julia_set(const complex& c) {
 
 int main(int argc, char** argv) {
     using namespace std::chrono;
+    using namespace Magick;
 
     InitializeMagick(*argv);
 
