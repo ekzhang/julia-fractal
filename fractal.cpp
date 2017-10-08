@@ -18,7 +18,7 @@ const int HEIGHT = 3000;
 const int NUM_THREADS = 4;
 
 // Maximum number of iterations when computing the Julia fractal
-const int MAX_ITER = 500;
+const int MAX_ITER = 256;
 
 std::vector<double> julia_pixels(complex c, int width, int height,
                                  int row_b, int row_e) {
